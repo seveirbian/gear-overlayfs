@@ -1,1 +1,6 @@
 .DS_Store
+*.o
+*.ko
+*-safe
+*.order
+overlay.mod.c
