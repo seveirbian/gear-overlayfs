@@ -81,8 +81,11 @@ struct ovl_entry *ovl_alloc_entry(unsigned int numlower)
 	size_t size = offsetof(struct ovl_entry, lowerstack[numlower]);
 	struct ovl_entry *oe = kzalloc(size, GFP_KERNEL);
 
-	if (oe)
+	if (oe) {
 		oe->numlower = numlower;
+		oe->hardlinked = 0;
+		oe->geardentry = NULL;
+	}
 
 	return oe;
 }
@@ -165,6 +168,33 @@ struct dentry *ovl_dentry_upper(struct dentry *dentry)
 struct dentry *ovl_dentry_lower(struct dentry *dentry)
 {
 	struct ovl_entry *oe = dentry->d_fsdata;
+
+	// gear: 添加对gearworkdir的判断
+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+	char gearfilename[1000];
+	char *relativename;
+	int gear_buf_len = 1000;
+	char gear_buf[gear_buf_len];
+	// 当前挂载的是gear镜像
+	if(ofs->config.gearworkdir) {
+		// 已经硬链接到上层
+		if(oe->hardlink) {
+			return oe->geardentry;
+		}
+		else {
+			// 检测gear-work目录下是否已经有目标文件
+			gearfilename[0] = '\0';
+			strcat(gearfilename, ofs->config.gearworkdir);
+			relativename = dentry_path_raw(dentry, gear_buf, gear_buf_len);
+			strcat(gearfilename, relativename);
+			printk("gearfilename: %s\n", gearfilename);
+			// filp_open(gearfilename, int open_mode, int mode);
+			// if(ok) {
+			// 	oe->hardlink = 1;
+			// 	oe->geardentry = ;
+			// }
+		}
+	}
 
 	return oe->numlower ? oe->lowerstack[0].dentry : NULL;
 }

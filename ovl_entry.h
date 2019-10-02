@@ -20,7 +20,7 @@ struct ovl_config {
 
 	// gear: gear-work dir
 	char *gearworkdir;
-	
+
 };
 
 struct ovl_layer {
@@ -68,6 +68,11 @@ struct ovl_entry {
 		struct rcu_head rcu;
 	};
 	unsigned numlower;
+	
+	// gear: 添加是否hardlink的标志，添加hardlink后的文件的dentry
+	int hardlinked;
+	struct dentry *geardentry;
+
 	struct ovl_path lowerstack[];
 };
 

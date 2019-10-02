@@ -443,7 +443,8 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
 	char *gearlowerdirtmp;
 	int gearlowerlen = 0;
 	int numlower = 0;
-	char *lower; 
+	char *lower;
+	char *target = "gear-work";
 
 
 	config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
@@ -481,7 +482,11 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
 			lower = gearlowerdirtmp;
 			for (numlower = 1; numlower < gearlowerlen; numlower++) {
 				lower = strchr(lower, '\0') + 1;
-				printk("lower: %s\n", lower);
+				if(strstr(lower, target)) {
+					printk("gear-work-dir: %s\n", lower);
+					config->gearworkdir = lower;
+					break;
+				}
 			}
 			if(!config->gearworkdir)
 				config->gearworkdir = NULL;
