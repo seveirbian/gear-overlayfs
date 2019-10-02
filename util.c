@@ -178,7 +178,7 @@ struct dentry *ovl_dentry_lower(struct dentry *dentry)
 	// 当前挂载的是gear镜像
 	if(ofs->config.gearworkdir) {
 		// 已经硬链接到上层
-		if(oe->hardlink) {
+		if(oe->hardlinked) {
 			return oe->geardentry;
 		}
 		else {
