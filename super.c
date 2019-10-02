@@ -463,6 +463,13 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
 			config->lowerdir = match_strdup(&args[0]);
 			if (!config->lowerdir)
 				return -ENOMEM;
+
+			// gear: 添加对gearwork目录的识别，将其保存在config->gearworkdir中
+			kfree(config->gearworkdir);
+			config->gearworkdir = match_strdup(&args[0]);
+			printk("config->gearworkdir: %s\n", config->gearworkdir);
+			if(!config->gearworkdir)
+				config->gearworkdir = NULL;
 			break;
 
 		case OPT_WORKDIR:

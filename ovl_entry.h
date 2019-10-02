@@ -17,6 +17,9 @@ struct ovl_config {
 	bool redirect_follow;
 	const char *redirect_mode;
 	bool index;
+
+	// gear: gear-work dir
+	char *gearworkdir;
 };
 
 struct ovl_layer {
