@@ -438,6 +438,13 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
 {
 	char *p;
 
+	// gear: 添加一些变量
+	char *gearlowerdirtmp;
+	int gearlowerlen = 0;
+	int numlower = 0;
+	char *lower; 
+
+
 	config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
 	if (!config->redirect_mode)
 		return -ENOMEM;
@@ -466,10 +473,18 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
 
 			// gear: 添加对gearwork目录的识别，将其保存在config->gearworkdir中
 			kfree(config->gearworkdir);
-			config->gearworkdir = match_strdup(&args[0]);
-			printk("config->gearworkdir: %s\n", config->gearworkdir);
+			gearlowerdirtmp = kstrdup(&args[0], GFP_KERNEL);
+			if (!gearlowerdirtmp)
+				break;
+			gearlowerlen = ovl_split_lowerdirs(gearlowerdirtmp);
+			lower = gearlowerdirtmp;
+			for (numlower = 1; numlower < gearlowerlen; numlower++) {
+				lower = strchr(lower, '\0') + 1;
+				printk("lower: %s\n", lower);
+			}
 			if(!config->gearworkdir)
 				config->gearworkdir = NULL;
+
 			break;
 
 		case OPT_WORKDIR:

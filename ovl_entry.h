@@ -20,6 +20,7 @@ struct ovl_config {
 
 	// gear: gear-work dir
 	char *gearworkdir;
+	
 };
 
 struct ovl_layer {
