@@ -474,7 +474,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
 
 			// gear: 添加对gearwork目录的识别，将其保存在config->gearworkdir中
 			kfree(config->gearworkdir);
-			gearlowerdirtmp = kstrdup(&args[0], GFP_KERNEL);
+			gearlowerdirtmp = match_strdup(&args[0]);
 			if (!gearlowerdirtmp)
 				break;
 			gearlowerlen = ovl_split_lowerdirs(gearlowerdirtmp);
