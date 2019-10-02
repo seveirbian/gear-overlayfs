@@ -23,6 +23,7 @@ MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
 MODULE_DESCRIPTION("Overlay filesystem");
 MODULE_LICENSE("GPL");
 
+static unsigned int ovl_split_lowerdirs(char *);
 
 struct ovl_dir_cache;
 
