@@ -19,11 +19,6 @@
 #include <linux/posix_acl_xattr.h>
 #include "overlayfs.h"
 
-// gear: 添加一些头文件
-#include < asm/segment.h >
-#include < asm/uaccess.h >
-#include < linux/buffer_head.h >
-
 MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
 MODULE_DESCRIPTION("Overlay filesystem");
 MODULE_LICENSE("GPL");
@@ -97,10 +92,7 @@ static struct dentry *gear_judge(struct dentry *dentry,
 	char gear_buf[gear_buf_len];
 	struct file *gearfile = NULL;
 	struct dentry *geardentry = NULL;
-	mm_segment_t oldfs;
 
-	oldfs = get_fs();
-	set_fs(get_ds());
 	// char *gearrealfilename;
 	if(!d_is_dir(dentry)) {
 		// 当前挂载的是gear镜像
@@ -131,8 +123,6 @@ static struct dentry *gear_judge(struct dentry *dentry,
 			}
 		}
 	}
-
-	set_fs(oldfs);
 
 	return real;
 }
