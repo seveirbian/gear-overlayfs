@@ -107,12 +107,15 @@ static struct dentry *gear_judge(struct dentry *dentry,
 			strcat(gearfilename, relativename);
 			printk("gearfilename: %s\n", gearfilename);
 			gearfile = filp_open(gearfilename, open_flags | O_RDONLY, 0);
-			geardentry = gearfile->f_path.dentry;
-			gearrealfilename = dentry_path_raw(geardentry, gear_buf, gear_buf_len);
-			printk("gearreal gearfilename: %s\n", gearrealfilename);
-			oe->hardlinked = 1;
-			oe->geardentry = geardentry;
-			// return geardentry;
+			if(gearfile) {
+				geardentry = gearfile->f_path.dentry;
+				gearrealfilename = dentry_path_raw(geardentry, gear_buf, gear_buf_len);
+				printk("gearreal gearfilename: %s\n", gearrealfilename);
+				oe->hardlinked = 1;
+				oe->geardentry = geardentry;
+				// return geardentry;
+			}
+			printk("filp_open failed!\n");
 		}
 	}
 
