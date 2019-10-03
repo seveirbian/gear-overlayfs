@@ -81,7 +81,7 @@ static int ovl_check_append_only(struct inode *inode, int flag)
 }
 
 static struct dentry *gear_judge(struct dentry *dentry, 
-					struct dentry **real, unsigned int open_flags) 
+					struct dentry *real, unsigned int open_flags) 
 {
 	struct ovl_entry *oe = dentry->d_fsdata;
 	// gear: 添加对gearworkdir的判断
@@ -121,7 +121,7 @@ static struct dentry *gear_judge(struct dentry *dentry,
 		}
 	}
 
-	return *real;
+	return real;
 }
 
 static struct dentry *ovl_d_real(struct dentry *dentry,
@@ -159,7 +159,7 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
 	real = ovl_dentry_lower(dentry);
 
 	// gear: 添加对返回的dentry的判断
-	real = gear_judge(dentry, &real, open_flags);
+	real = gear_judge(dentry, real, open_flags);
 
 	if (!real)
 		goto bug;
@@ -168,7 +168,7 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
 	real = d_real(real, inode, open_flags, 0);
 
 	// if (!inode || inode == d_inode(real))
-	// 	return real;
+	return real;
 bug:
 	WARN(1, "ovl_d_real(%pd4, %s:%lu): real dentry not found\n", dentry,
 	     inode ? inode->i_sb->s_id : "NULL", inode ? inode->i_ino : 0);
