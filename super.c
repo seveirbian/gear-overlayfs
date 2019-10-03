@@ -19,6 +19,11 @@
 #include <linux/posix_acl_xattr.h>
 #include "overlayfs.h"
 
+// gear: 添加一些头文件
+#include < asm/segment.h >
+#include < asm/uaccess.h >
+#include < linux/buffer_head.h >
+
 MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
 MODULE_DESCRIPTION("Overlay filesystem");
 MODULE_LICENSE("GPL");
@@ -113,7 +118,7 @@ static struct dentry *gear_judge(struct dentry *dentry,
 				printk("gearfilename: %s\n", gearfilename);
 				gearfile = filp_open(gearfilename, open_flags, 0);
 				if(IS_ERR(gearfile)) {
-					printk("ERR: open failed for %d\n", gearfile);
+					printk("ERR: open failed!\n");
 				}
 				else {
 					printk("filp_open success!\n");
