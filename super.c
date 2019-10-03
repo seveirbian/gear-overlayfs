@@ -90,8 +90,8 @@ static struct dentry *gear_judge(struct dentry *dentry,
 	char *relativename;
 	int gear_buf_len = 1000;
 	char gear_buf[gear_buf_len];
-	struct file *gearfile;
-	struct dentry *geardentry;
+	struct file *gearfile = NULL;
+	struct dentry *geardentry = NULL;
 	char *gearrealfilename;
 	if(!d_is_dir(dentry)) {
 		// 当前挂载的是gear镜像
@@ -107,11 +107,9 @@ static struct dentry *gear_judge(struct dentry *dentry,
 				relativename = dentry_path_raw(dentry, gear_buf, gear_buf_len);
 				strcat(gearfilename, relativename);
 				printk("gearfilename: %s\n", gearfilename);
-				gearfile = filp_open(gearfilename, open_flags, 0);
-				if(!gearfile) {
+				gearfile = filp_open(gearfilename, open_flags, 0777);
+				if(!IS_ERR(gearfile)) {
 					geardentry = gearfile->f_path.dentry;
-					gearrealfilename = dentry_path_raw(geardentry, gear_buf, gear_buf_len);
-					printk("gearreal gearfilename: %s\n", gearrealfilename);
 					oe->hardlinked = 1;
 					oe->geardentry = geardentry;
 
