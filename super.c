@@ -110,7 +110,7 @@ static struct dentry *gear_judge(struct dentry *dentry,
 				printk("gearfilename: %s\n", gearfilename);
 				gearfile = filp_open(gearfilename, open_flags, 0);
 				if(IS_ERR(gearfile)) {
-					printk("ERR: open failed for %d!\n", PTR_ERR(gearfile));
+					printk("ERR: open failed for %ld!\n", PTR_ERR(gearfile));
 				}
 				else {
 					printk("filp_open success!\n");
