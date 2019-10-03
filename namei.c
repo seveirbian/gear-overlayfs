@@ -597,7 +597,7 @@ static int ovl_find_layer(struct ovl_fs *ofs, struct ovl_path *path)
 
 struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
 			  unsigned int flags)
-{
+{	
 	struct ovl_entry *oe;
 	const struct cred *old_cred;
 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
@@ -620,7 +620,15 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
 		.stop = false,
 		.last = !poe->numlower,
 		.redirect = NULL,
-	};
+	};	
+
+	// gear: 添加输出
+	int gear_buf_len = 1000;
+	char gear_buf[gear_buf_len];
+	struct file *gearfile = NULL;
+	gearfile = dentry_path_raw(dentry, gear_buf, gear_buf_len);
+	printk("<ovl_lookup>\n");
+	printk("dentry's full path: %s\n", gearfile);
 
 	if (dentry->d_name.len > ofs->namelen)
 		return ERR_PTR(-ENAMETOOLONG);

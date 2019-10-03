@@ -94,7 +94,7 @@ static struct dentry *gear_judge(struct dentry *dentry,
 	struct dentry *geardentry = NULL;
 
 	// char *gearrealfilename;
-	if(!d_is_dir(dentry)) {
+	if(S_ISREG(dentry->d_inode->i_mode)) {
 		// 当前挂载的是gear镜像
 		if(ofs->config.gearworkdir) {
 			// 已经硬链接到上层
@@ -110,7 +110,7 @@ static struct dentry *gear_judge(struct dentry *dentry,
 				printk("gearfilename: %s\n", gearfilename);
 				gearfile = filp_open(gearfilename, open_flags, 0);
 				if(IS_ERR(gearfile)) {
-					printk("ERR: open failed for %ld!\n", PTR_ERR(gearfile));
+					printk("ERR: error code: %ld!\n", PTR_ERR(gearfile));
 				}
 				else {
 					printk("filp_open success!\n");
@@ -162,7 +162,7 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
 	real = ovl_dentry_lower(dentry);
 
 	// gear: 添加对返回的dentry的判断
-	real = gear_judge(dentry, real, open_flags);
+	// real = gear_judge(dentry, real, open_flags);
 
 	if (!real)
 		goto bug;
