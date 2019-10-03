@@ -92,7 +92,11 @@ static struct dentry *gear_judge(struct dentry *dentry,
 	char gear_buf[gear_buf_len];
 	struct file *gearfile = NULL;
 	struct dentry *geardentry = NULL;
-	char *gearrealfilename;
+	mm_segment_t oldfs;
+
+	oldfs = get_fs();
+	set_fs(get_ds());
+	// char *gearrealfilename;
 	if(!d_is_dir(dentry)) {
 		// 当前挂载的是gear镜像
 		if(ofs->config.gearworkdir) {
@@ -107,8 +111,12 @@ static struct dentry *gear_judge(struct dentry *dentry,
 				relativename = dentry_path_raw(dentry, gear_buf, gear_buf_len);
 				strcat(gearfilename, relativename);
 				printk("gearfilename: %s\n", gearfilename);
-				gearfile = filp_open(gearfilename, open_flags, 0777);
-				if(!IS_ERR(gearfile)) {
+				gearfile = filp_open(gearfilename, open_flags, 0);
+				if(IS_ERR(gearfile)) {
+					printk("ERR: open failed for %d\n", gearfile);
+				}
+				else {
+					printk("filp_open success!\n");
 					geardentry = gearfile->f_path.dentry;
 					oe->hardlinked = 1;
 					oe->geardentry = geardentry;
@@ -118,6 +126,8 @@ static struct dentry *gear_judge(struct dentry *dentry,
 			}
 		}
 	}
+
+	set_fs(oldfs);
 
 	return real;
 }
