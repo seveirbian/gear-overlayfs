@@ -93,29 +93,31 @@ static struct dentry *gear_judge(struct dentry *dentry,
 	struct file *gearfile;
 	struct dentry *geardentry;
 	char *gearrealfilename;
-	// 当前挂载的是gear镜像
-	if(ofs->config.gearworkdir) {
-		// 已经硬链接到上层
-		if(oe->hardlinked) {
-			return oe->geardentry;
-		}
-		else {
-			// 检测gear-work目录下是否已经有目标文件
-			gearfilename[0] = '\0';
-			strcat(gearfilename, ofs->config.gearworkdir);
-			relativename = dentry_path_raw(dentry, gear_buf, gear_buf_len);
-			strcat(gearfilename, relativename);
-			printk("gearfilename: %s\n", gearfilename);
-			gearfile = filp_open(gearfilename, open_flags | O_RDONLY, 0);
-			if(gearfile) {
-				geardentry = gearfile->f_path.dentry;
-				gearrealfilename = dentry_path_raw(geardentry, gear_buf, gear_buf_len);
-				printk("gearreal gearfilename: %s\n", gearrealfilename);
-				oe->hardlinked = 1;
-				oe->geardentry = geardentry;
-				// return geardentry;
+	if(!d_is_dir(dentry)) {
+		// 当前挂载的是gear镜像
+		if(ofs->config.gearworkdir) {
+			// 已经硬链接到上层
+			if(oe->hardlinked) {
+				return oe->geardentry;
 			}
-			printk("filp_open failed!\n");
+			else {
+				// 检测gear-work目录下是否已经有目标文件
+				gearfilename[0] = '\0';
+				strcat(gearfilename, ofs->config.gearworkdir);
+				relativename = dentry_path_raw(dentry, gear_buf, gear_buf_len);
+				strcat(gearfilename, relativename);
+				printk("gearfilename: %s\n", gearfilename);
+				gearfile = filp_open(gearfilename, open_flags | O_RDONLY, 0);
+				if(!IS_ERR(gearfile)) {
+					geardentry = gearfile->f_path.dentry;
+					gearrealfilename = dentry_path_raw(geardentry, gear_buf, gear_buf_len);
+					printk("gearreal gearfilename: %s\n", gearrealfilename);
+					oe->hardlinked = 1;
+					oe->geardentry = geardentry;
+					// return geardentry;
+				}
+				printk("filp_open failed!\n");
+			}
 		}
 	}
 
