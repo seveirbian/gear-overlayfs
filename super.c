@@ -80,6 +80,43 @@ static int ovl_check_append_only(struct inode *inode, int flag)
 	return 0;
 }
 
+static struct dentry *gear_judge(struct dentry *dentry, 
+					struct dentry *real, unsigned int open_flags) 
+{
+	// gear: 添加对gearworkdir的判断
+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+	char gearfilename[1000];
+	char *relativename;
+	int gear_buf_len = 1000;
+	char gear_buf[gear_buf_len];
+	struct file *gearfile;
+	struct dentry *geardentry;
+	// 当前挂载的是gear镜像
+	if(ofs->config.gearworkdir) {
+		// 已经硬链接到上层
+		if(oe->hardlinked) {
+			return oe->geardentry;
+		}
+		else {
+			// 检测gear-work目录下是否已经有目标文件
+			gearfilename[0] = '\0';
+			strcat(gearfilename, ofs->config.gearworkdir);
+			relativename = dentry_path_raw(dentry, gear_buf, gear_buf_len);
+			strcat(gearfilename, relativename);
+			printk("gearfilename: %s\n", gearfilename);
+			gearfile = filp_open(gearfilename, open_flags | O_RDONLY, 0);
+			geardentry = gearfile->f_name.dentry;
+			gearfilename = dentry_path_raw(geardentry, gear_buf, gear_buf_len);
+			printk("real gearfilename: %s\n", gearfilename);
+			oe->hardlinked = 1;
+			oe->geardentry = geardentry;
+			// return geardentry;
+		}
+	}
+
+	return real;
+}
+
 static struct dentry *ovl_d_real(struct dentry *dentry,
 				 const struct inode *inode,
 				 unsigned int open_flags, unsigned int flags)
@@ -113,14 +150,18 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
 	}
 
 	real = ovl_dentry_lower(dentry);
+
+	// gear: 添加对返回的dentry的判断
+	real = gear_judge(dentry, real, open_flags);
+
 	if (!real)
 		goto bug;
 
 	/* Handle recursion */
 	real = d_real(real, inode, open_flags, 0);
 
-	if (!inode || inode == d_inode(real))
-		return real;
+	// if (!inode || inode == d_inode(real))
+	// 	return real;
 bug:
 	WARN(1, "ovl_d_real(%pd4, %s:%lu): real dentry not found\n", dentry,
 	     inode ? inode->i_sb->s_id : "NULL", inode ? inode->i_ino : 0);
