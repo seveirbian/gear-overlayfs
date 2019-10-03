@@ -114,9 +114,8 @@ static struct dentry *gear_judge(struct dentry *dentry,
 					printk("gearreal gearfilename: %s\n", gearrealfilename);
 					oe->hardlinked = 1;
 					oe->geardentry = geardentry;
-					// return geardentry;
+					return geardentry;
 				}
-				printk("filp_open failed!\n");
 			}
 		}
 	}
