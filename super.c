@@ -108,7 +108,7 @@ static struct dentry *gear_judge(struct dentry *dentry,
 				strcat(gearfilename, relativename);
 				printk("gearfilename: %s\n", gearfilename);
 				gearfile = filp_open(gearfilename, open_flags, 0);
-				if(!IS_ERR(gearfile)) {
+				if(!gearfile) {
 					geardentry = gearfile->f_path.dentry;
 					gearrealfilename = dentry_path_raw(geardentry, gear_buf, gear_buf_len);
 					printk("gearreal gearfilename: %s\n", gearrealfilename);
