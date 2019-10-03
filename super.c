@@ -83,6 +83,7 @@ static int ovl_check_append_only(struct inode *inode, int flag)
 static struct dentry *gear_judge(struct dentry *dentry, 
 					struct dentry *real, unsigned int open_flags) 
 {
+	struct ovl_entry *oe = dentry->d_fsdata;
 	// gear: 添加对gearworkdir的判断
 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
 	char gearfilename[1000];
@@ -91,6 +92,7 @@ static struct dentry *gear_judge(struct dentry *dentry,
 	char gear_buf[gear_buf_len];
 	struct file *gearfile;
 	struct dentry *geardentry;
+	char *gearrealfilename;
 	// 当前挂载的是gear镜像
 	if(ofs->config.gearworkdir) {
 		// 已经硬链接到上层
@@ -105,9 +107,9 @@ static struct dentry *gear_judge(struct dentry *dentry,
 			strcat(gearfilename, relativename);
 			printk("gearfilename: %s\n", gearfilename);
 			gearfile = filp_open(gearfilename, open_flags | O_RDONLY, 0);
-			geardentry = gearfile->f_name.dentry;
-			gearfilename = dentry_path_raw(geardentry, gear_buf, gear_buf_len);
-			printk("real gearfilename: %s\n", gearfilename);
+			geardentry = gearfile->f_path.dentry;
+			gearrealfilename = dentry_path_raw(geardentry, gear_buf, gear_buf_len);
+			printk("gearreal gearfilename: %s\n", gearrealfilename);
 			oe->hardlinked = 1;
 			oe->geardentry = geardentry;
 			// return geardentry;
