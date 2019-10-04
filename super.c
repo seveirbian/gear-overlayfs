@@ -115,13 +115,11 @@ static struct dentry *gear_judge(struct dentry *dentry,
 			else {
 				// 使用ovl_lookup更新当前dentry在底层的dentry
 				gear_update(dentry);
-				if(dentry->d_fsdata != oe) {
-					printk("update!\n");
-					oe = dentry->d_fsdata;
-					oe->gear_update = 1;
-					real = ovl_dentry_lower(dentry);
-					return real;
-				}
+				printk("update!\n");
+				oe = dentry->d_fsdata;
+				oe->gear_update = 1;
+				real = ovl_dentry_lower(dentry);
+				return real;
 			}
 		}
 	}
