@@ -82,10 +82,12 @@ static int ovl_check_append_only(struct inode *inode, int flag)
 
 void gear_update(struct dentry *dentry, int num) 
 {
-	if(num < 50) {
+	if(dentry->d_parent->d_name.name[0] != '/') {
 		printk("dentry->d_parent->d_name.name: %s\n", dentry->d_parent->d_name.name);
 		gear_update(dentry->d_parent, num+1);
 	}
+	printk("ovl_lookup\n")
+	ovl_lookup(NULL, dentry, 0);
 }
 
 static struct dentry *gear_judge(struct dentry *dentry, 
