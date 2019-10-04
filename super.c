@@ -85,18 +85,23 @@ void gear_update(struct dentry *dentry)
 {
 	struct ovl_entry *oe;
 	struct ovl_inode *oi;
+	struct inode *i;
 
 	if(dentry->d_parent->d_name.name[0] != '/') {
 		gear_update(dentry->d_parent);
 	}
 	oe = dentry->d_fsdata;
 	oi = OVL_I(dentry->d_inode);
+	i = dentry->d_inode;
 	ovl_lookup(NULL, dentry, 0);
 	if(oe != dentry->d_fsdata) {
 		kfree(oe);
 	}
 	if(oi != OVL_I(dentry->d_inode)) {
 		kfree(oi);
+	}
+	if(i != dentry->d_inode) {
+		iput(i);
 	}
 }
 
