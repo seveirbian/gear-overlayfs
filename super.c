@@ -83,10 +83,8 @@ static int ovl_check_append_only(struct inode *inode, int flag)
 void gear_update(struct dentry *dentry, int num) 
 {
 	if(dentry->d_parent->d_name.name[0] != '/') {
-		printk("dentry->d_parent->d_name.name: %s\n", dentry->d_parent->d_name.name);
 		gear_update(dentry->d_parent, num+1);
 	}
-	printk("ovl_lookup\n");
 	ovl_lookup(NULL, dentry, 0);
 }
 
@@ -97,12 +95,6 @@ static struct dentry *gear_judge(struct dentry *dentry,
 	struct ovl_entry *oe = dentry->d_fsdata;
 	// gear: 添加对gearworkdir的判断
 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-	char gearfilename[1000];
-	char *relativename;
-	int gear_buf_len = 1000;
-	char gear_buf[gear_buf_len];
-	struct file *gearfile = NULL;
-	struct dentry *geardentry = NULL;
 
 	// char *gearrealfilename;
 	if(S_ISREG(dentry->d_inode->i_mode)) {
