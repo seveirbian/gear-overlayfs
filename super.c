@@ -92,7 +92,7 @@ void gear_update(struct dentry *dentry)
 	}
 	oe = dentry->d_fsdata;
 	oi = OVL_I(dentry->d_inode);
-	i = dentry->d_inode;
+	// i = d_inode(dentry);
 	ovl_lookup(NULL, dentry, 0);
 	if(oe != dentry->d_fsdata) {
 		kfree(oe);
@@ -100,9 +100,9 @@ void gear_update(struct dentry *dentry)
 	if(oi != OVL_I(dentry->d_inode)) {
 		kfree(oi);
 	}
-	if(i != dentry->d_inode) {
-		iput(i);
-	}
+	// if(i != d_inode(dentry)) {
+	// 	iput(i);
+	// }
 }
 
 static struct dentry *gear_judge(struct dentry *dentry, 
