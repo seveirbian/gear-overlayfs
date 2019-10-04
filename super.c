@@ -80,12 +80,19 @@ static int ovl_check_append_only(struct inode *inode, int flag)
 	return 0;
 }
 
-void gear_update(struct dentry *dentry, int num) 
+// gear: 添加对每个vfs中dentry的更新
+void gear_update(struct dentry *dentry) 
 {
+	struct ovl_entry *oe;
+
 	if(dentry->d_parent->d_name.name[0] != '/') {
-		gear_update(dentry->d_parent, num+1);
+		gear_update(dentry->d_parent);
 	}
+	oe = dentry->d_fsdata;
 	ovl_lookup(NULL, dentry, 0);
+	if(oe != dentry->d_fsdata) {
+		kfree(oe);
+	}
 }
 
 static struct dentry *gear_judge(struct dentry *dentry, 
@@ -102,11 +109,12 @@ static struct dentry *gear_judge(struct dentry *dentry,
 		if(ofs->config.gearworkdir) {
 			// 已经硬链接到上层
 			if(oe->gear_update) {
+				printk("ok!");
 				return real;
 			}
 			else {
 				// 使用ovl_lookup更新当前dentry在底层的dentry
-				gear_update(dentry, 0);
+				gear_update(dentry);
 				if(dentry->d_inode != inode) {
 					oe->gear_update = 1;
 					real = ovl_dentry_lower(dentry);
