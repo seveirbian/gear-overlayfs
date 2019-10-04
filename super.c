@@ -80,8 +80,17 @@ static int ovl_check_append_only(struct inode *inode, int flag)
 	return 0;
 }
 
+void gear_update(struct dentry *dentry, int num) 
+{
+	if(num < 50) {
+		printk("dentry->d_parent->d_name.name: %s\n", dentry->d_parent->d_name.name);
+		gear_update(dentry->d_parent, num+1);
+	}
+}
+
 static struct dentry *gear_judge(struct dentry *dentry, 
-					struct dentry *real, unsigned int open_flags) 
+					const struct inode *inode, struct dentry *real, 
+					unsigned int open_flags) 
 {
 	struct ovl_entry *oe = dentry->d_fsdata;
 	// gear: 添加对gearworkdir的判断
@@ -98,27 +107,16 @@ static struct dentry *gear_judge(struct dentry *dentry,
 		// 当前挂载的是gear镜像
 		if(ofs->config.gearworkdir) {
 			// 已经硬链接到上层
-			if(oe->hardlinked) {
-				return oe->geardentry;
+			if(oe->gearupdate) {
+				return real;
 			}
 			else {
-				// 检测gear-work目录下是否已经有目标文件
-				gearfilename[0] = '\0';
-				strcat(gearfilename, ofs->config.gearworkdir);
-				relativename = dentry_path_raw(dentry, gear_buf, gear_buf_len);
-				strcat(gearfilename, relativename);
-				printk("gearfilename: %s\n", gearfilename);
-				gearfile = filp_open(gearfilename, open_flags, 0);
-				if(IS_ERR(gearfile)) {
-					printk("ERR: error code: %ld!\n", PTR_ERR(gearfile));
-				}
-				else {
-					printk("filp_open success!\n");
-					geardentry = gearfile->f_path.dentry;
-					oe->hardlinked = 1;
-					oe->geardentry = geardentry;
-
-					return geardentry;
+				// 使用ovl_lookup更新当前dentry在底层的dentry
+				gear_update(dentry, 0);
+				if(dentry->d_inode != inode) {
+					oe->gearupdate = 1;
+					real = ovl_dentry_lower(dentry);
+					return real;
 				}
 			}
 		}
@@ -162,7 +160,7 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
 	real = ovl_dentry_lower(dentry);
 
 	// gear: 添加对返回的dentry的判断
-	// real = gear_judge(dentry, real, open_flags);
+	real = gear_judge(dentry, inode, real, open_flags);
 
 	if (!real)
 		goto bug;

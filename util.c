@@ -83,8 +83,9 @@ struct ovl_entry *ovl_alloc_entry(unsigned int numlower)
 
 	if (oe) {
 		oe->numlower = numlower;
-		oe->hardlinked = 0;
-		oe->geardentry = NULL;
+		
+		// gear: 添加对gear_update的更新
+		oe->gear_update = 0;
 	}
 
 	return oe;

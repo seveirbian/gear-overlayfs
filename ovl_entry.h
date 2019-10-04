@@ -68,10 +68,9 @@ struct ovl_entry {
 		struct rcu_head rcu;
 	};
 	unsigned numlower;
-	
-	// gear: 添加是否hardlink的标志，添加hardlink后的文件的dentry
-	int hardlinked;
-	struct dentry *geardentry;
+
+	// gear: 添加是否已经更新为gear-work文件的dentry的标志
+	int gear_update;
 
 	struct ovl_path lowerstack[];
 };
