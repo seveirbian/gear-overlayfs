@@ -117,6 +117,7 @@ static struct dentry *gear_judge(struct dentry *dentry,
 				gear_update(dentry);
 				if(dentry->d_fsdata != oe) {
 					printk("update!\n");
+					oe = dentry->d_fsdata;
 					oe->gear_update = 1;
 					real = ovl_dentry_lower(dentry);
 					return real;
