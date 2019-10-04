@@ -629,6 +629,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
 	gearpath = dentry_path_raw(dentry, gear_buf, gear_buf_len);
 	printk("<ovl_lookup>\n");
 	printk("dentry's full path: %s\n", gearpath);
+	printk("dentry's d_name.name: %s\n", dentry->d_name.name);
 
 	if (dentry->d_name.len > ofs->namelen)
 		return ERR_PTR(-ENAMETOOLONG);
