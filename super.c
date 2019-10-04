@@ -124,13 +124,13 @@ static struct dentry *gear_judge(struct dentry *dentry,
 		if(ofs->config.gearworkdir) {
 			// 已经硬链接到上层
 			if(oe->gear_update) {
-				printk("updated!\n");
+				// printk("updated!\n");
 				return real;
 			}
 			else {
 				// 使用ovl_lookup更新当前dentry在底层的dentry
 				gear_update(dentry);
-				printk("update!\n");
+				// printk("update!\n");
 				oe = dentry->d_fsdata;
 				oe->gear_update = 1;
 				real = ovl_dentry_lower(dentry);
