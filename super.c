@@ -86,7 +86,7 @@ void gear_update(struct dentry *dentry, int num)
 		printk("dentry->d_parent->d_name.name: %s\n", dentry->d_parent->d_name.name);
 		gear_update(dentry->d_parent, num+1);
 	}
-	printk("ovl_lookup\n")
+	printk("ovl_lookup\n");
 	ovl_lookup(NULL, dentry, 0);
 }
 
