@@ -95,14 +95,20 @@ void gear_update(struct dentry *dentry)
 	// i = d_inode(dentry);
 	ovl_lookup(NULL, dentry, 0);
 	if(oe != dentry->d_fsdata) {
-		kfree(oe);
+		ovl_entry_stack_free(oe);
+		kfree_rcu(oe, rcu);
+	}
+	if(i != d_inode(dentry)) {
+		dput(oi->__upperdentry);
+		iput(oi->lower);
+		kfree(oi->redirect);
+		ovl_dir_cache_free(inode);
+		mutex_destroy(&oi->lock);
+		call_rcu(&inode->i_rcu, ovl_i_callback);
 	}
 	if(oi != OVL_I(dentry->d_inode)) {
 		kfree(oi);
 	}
-	// if(i != d_inode(dentry)) {
-	// 	iput(i);
-	// }
 }
 
 static struct dentry *gear_judge(struct dentry *dentry, 
