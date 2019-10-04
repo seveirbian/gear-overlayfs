@@ -107,14 +107,14 @@ static struct dentry *gear_judge(struct dentry *dentry,
 		// 当前挂载的是gear镜像
 		if(ofs->config.gearworkdir) {
 			// 已经硬链接到上层
-			if(oe->gearupdate) {
+			if(oe->gear_update) {
 				return real;
 			}
 			else {
 				// 使用ovl_lookup更新当前dentry在底层的dentry
 				gear_update(dentry, 0);
 				if(dentry->d_inode != inode) {
-					oe->gearupdate = 1;
+					oe->gear_update = 1;
 					real = ovl_dentry_lower(dentry);
 					return real;
 				}
