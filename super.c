@@ -26,6 +26,7 @@ MODULE_LICENSE("GPL");
 // gear: 添加声明
 static unsigned int ovl_split_lowerdirs(char *);
 static void ovl_i_callback(struct rcu_head *);
+static void ovl_destroy_inode(struct inode *);
 
 struct ovl_dir_cache;
 
