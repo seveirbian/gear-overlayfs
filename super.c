@@ -1550,6 +1550,8 @@ static void __exit ovl_exit(void)
 	rcu_barrier();
 	kmem_cache_destroy(ovl_inode_cachep);
 
+	// gear: 添加对失效的dentry和inode的释放
+	gear_destroy();
 }
 
 module_init(ovl_init);
