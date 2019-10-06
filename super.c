@@ -117,14 +117,14 @@ static void gear_destroy_inode(struct gear_ovl_inode_list *inode_pt) {
 	dput(oi->__upperdentry);
 	iput(oi->lower);
 	kfree(oi->redirect);
-	ovl_cache_free(&(oi->cache.entries));
+	ovl_cache_free(&(oi->cache->entries));
 	kfree(oi->cache);
 	mutex_destroy(&oi->lock);
 	call_rcu(&(oi->vfs_inode.i_rcu), ovl_i_callback);
 	kfree(inode_pt);
 }
 
-static void gear_destroy() {
+static void gear_destroy(void) {
 	struct gear_ovl_entry_list *entry_pt = gear_ovl_entry_list;
 	struct gear_ovl_inode_list *inode_pt = gear_ovl_inode_list;
 
