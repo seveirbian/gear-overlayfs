@@ -161,6 +161,7 @@ static void gear_update(struct dentry *dentry)
 	}
 	oe = dentry->d_fsdata;
 	oi = OVL_I(dentry->d_inode);
+	i = &oi->vfs_inode;
 
 	ovl_lookup(NULL, dentry, 0);
 
