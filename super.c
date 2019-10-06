@@ -117,10 +117,10 @@ static void gear_destroy_inode(struct gear_ovl_inode_list *inode_pt) {
 	dput(oi->__upperdentry);
 	iput(oi->lower);
 	kfree(oi->redirect);
-	ovl_cache_free(&(oi->cache->entries));
+	ovl_cache_free(&(oi->cache.entries));
 	kfree(oi->cache);
 	mutex_destroy(&oi->lock);
-	call_rcu(&(oi->vfs_inode->i_rcu), ovl_i_callback);
+	call_rcu(&(oi->vfs_inode.i_rcu), ovl_i_callback);
 	kfree(inode_pt);
 }
 
@@ -149,7 +149,7 @@ static void gear_update(struct dentry *dentry)
 
 	if(gear_ovl_inode_list == NULL) {
 		gear_ovl_inode_list = (struct gear_ovl_inode_list *)kmalloc(sizeof(struct gear_ovl_inode_list), GFP_KERNEL);
-		gear_ovl_inode_list->ovl_entry = NULL;
+		gear_ovl_inode_list->ovl_inode = NULL;
 		gear_ovl_inode_list->next = NULL;
 
 		gear_ovl_inode_current = gear_ovl_inode_list;
