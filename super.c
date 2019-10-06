@@ -117,9 +117,9 @@ static void gear_destroy_inode(struct gear_ovl_inode_list *inode_pt) {
 		gear_destroy_inode(inode_pt->next);
 	}
 
-	i = inode_pt->ovl_inode->vfs_inode;
+	i = &inode_pt->ovl_inode->vfs_inode;
 
-	ovl_destroy_inode(struct inode *inode);
+	ovl_destroy_inode(i);
 	kfree(inode_pt);
 }
 
