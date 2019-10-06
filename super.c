@@ -26,12 +26,12 @@ MODULE_LICENSE("GPL");
 // gear: 添加声明
 struct gear_ovl_entry_list {
 	struct ovl_entry *ovl_entry;
-	struct ovl_entry *next;
-}
+	struct gear_ovl_entry_list *next;
+};
 struct gear_ovl_inode_list {
 	struct ovl_inode *ovl_inode;
-	struct ovl_inode *next;
-}
+	struct gear_ovl_inode_list *next;
+};
 struct gear_ovl_entry_list *gear_ovl_entry_list = NULL;
 struct gear_ovl_entry_list *gear_ovl_entry_current = NULL;
 struct gear_ovl_inode_list *gear_ovl_inode_list = NULL;
@@ -96,6 +96,8 @@ static int ovl_check_append_only(struct inode *inode, int flag)
 }
 
 static void gear_destroy_entry(struct gear_ovl_entry_list *entry_pt) {
+	struct ovl_entry *oe;
+
 	if(entry_pt->next != NULL) {
 		gear_destroy_entry(entry_pt->next);
 	}
@@ -106,10 +108,12 @@ static void gear_destroy_entry(struct gear_ovl_entry_list *entry_pt) {
 }
 
 static void gear_destroy_inode(struct gear_ovl_inode_list *inode_pt) {
+	struct ovl_inode *oi;
+
 	if(inode_pt->next != NULL) {
 		gear_destroy_inode(inode_pt->next);
 	}
-	oi = entry_pt->ovl_inode;
+	oi = inode_pt->ovl_inode;
 	dput(oi->__upperdentry);
 	iput(oi->lower);
 	kfree(oi->redirect);
@@ -135,16 +139,16 @@ static void gear_update(struct dentry *dentry)
 	struct ovl_inode *oi;
 	struct inode *i;
 
-	if gear_ovl_entry_list == NULL {
-		gear_ovl_entry_list = (struct gear_ovl_entry_list *)malloc(struct gear_ovl_entry_list)
+	if(gear_ovl_entry_list == NULL) {
+		gear_ovl_entry_list = (struct gear_ovl_entry_list *)kmalloc(struct gear_ovl_entry_list)
 		gear_ovl_entry_list->ovl_entry = NULL;
 		gear_ovl_entry_list->next = NULL;
 
 		gear_ovl_entry_current = gear_ovl_entry_list;
 	}
 
-	if gear_ovl_inode_list == NULL {
-		gear_ovl_inode_list = (struct gear_ovl_inode_list *)malloc(struct gear_ovl_inode_list)
+	if(gear_ovl_inode_list == NULL) {
+		gear_ovl_inode_list = (struct gear_ovl_inode_list *)kmalloc(struct gear_ovl_inode_list)
 		gear_ovl_inode_list->ovl_entry = NULL;
 		gear_ovl_inode_list->next = NULL;
 
@@ -162,13 +166,13 @@ static void gear_update(struct dentry *dentry)
 	ovl_lookup(NULL, dentry, 0);
 
 	if(oe != dentry->d_fsdata) {
-		gear_ovl_entry_current->next = (struct gear_ovl_entry_list *)malloc(struct gear_ovl_entry_list)
+		gear_ovl_entry_current->next = (struct gear_ovl_entry_list *)kmalloc(struct gear_ovl_entry_list)
 		gear_ovl_entry_current->next->ovl_entry = oe;
 		gear_ovl_entry_current->next->next = NULL;
 		gear_ovl_entry_current = gear_ovl_entry_current->next;
 	}
 	if(i != d_inode(dentry) || oi != OVL_I(dentry->d_inode)) {
-		gear_ovl_inode_current->next = (struct gear_ovl_inode_list *)malloc(struct gear_ovl_inode_list)
+		gear_ovl_inode_current->next = (struct gear_ovl_inode_list *)kmalloc(struct gear_ovl_inode_list)
 		gear_ovl_inode_current->next->ovl_inode = oi;
 		gear_ovl_inode_current->next->next = NULL;
 		gear_ovl_inode_current = gear_ovl_inode_current->next;
