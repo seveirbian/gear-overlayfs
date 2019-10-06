@@ -102,28 +102,24 @@ static void gear_destroy_entry(struct gear_ovl_entry_list *entry_pt) {
 		gear_destroy_entry(entry_pt->next);
 	}
 	oe = entry_pt->ovl_entry;
-	ovl_entry_stack_free(oe);
-	kfree_rcu(oe, rcu);
+
+	if(oe) {
+		ovl_entry_stack_free(oe);
+		kfree_rcu(oe, rcu);
+	}
 	kfree(entry_pt);
 }
 
 static void gear_destroy_inode(struct gear_ovl_inode_list *inode_pt) {
-	struct ovl_inode *oi;
+	struct inode *i;
 
 	if(inode_pt->next != NULL) {
 		gear_destroy_inode(inode_pt->next);
 	}
-	oi = inode_pt->ovl_inode;
-	dput(oi->__upperdentry);
-	iput(oi->lower);
-	kfree(oi->redirect);
 
-	if (oi->cache) {
-		ovl_cache_free(&(oi->cache->entries));
-		kfree(oi->cache);
-	}
-	mutex_destroy(&oi->lock);
-	call_rcu(&(oi->vfs_inode.i_rcu), ovl_i_callback);
+	i = inode_pt->ovl_inode->vfs_inode;
+
+	ovl_destroy_inode(struct inode *inode);
 	kfree(inode_pt);
 }
 
