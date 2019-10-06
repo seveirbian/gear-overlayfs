@@ -24,6 +24,18 @@ MODULE_DESCRIPTION("Overlay filesystem");
 MODULE_LICENSE("GPL");
 
 // gear: 添加声明
+struct gear_ovl_entry_list {
+	struct ovl_entry *ovl_entry;
+	struct ovl_entry *next;
+}
+struct gear_ovl_inode_list {
+	struct ovl_inode *ovl_inode;
+	struct ovl_inode *next;
+}
+struct gear_ovl_entry_list *gear_ovl_entry_list = NULL;
+struct gear_ovl_entry_list *gear_ovl_entry_current = NULL;
+struct gear_ovl_inode_list *gear_ovl_inode_list = NULL;
+struct gear_ovl_inode_list *gear_ovl_inode_current = NULL;
 static unsigned int ovl_split_lowerdirs(char *);
 static void ovl_i_callback(struct rcu_head *);
 static void ovl_destroy_inode(struct inode *);
@@ -83,36 +95,84 @@ static int ovl_check_append_only(struct inode *inode, int flag)
 	return 0;
 }
 
+static void gear_destroy_entry(struct gear_ovl_entry_list *entry_pt) {
+	if(entry_pt->next != NULL) {
+		gear_destroy_entry(entry_pt->next);
+	}
+	oe = entry_pt->ovl_entry;
+	ovl_entry_stack_free(oe);
+	kfree_rcu(oe, rcu);
+	kfree(entry_pt);
+}
+
+static void gear_destroy_inode(struct gear_ovl_inode_list *inode_pt) {
+	if(inode_pt->next != NULL) {
+		gear_destroy_inode(inode_pt->next);
+	}
+	oi = entry_pt->ovl_inode;
+	dput(oi->__upperdentry);
+	iput(oi->lower);
+	kfree(oi->redirect);
+	ovl_cache_free(&(oi->cache->entries));
+	kfree(oi->cache);
+	mutex_destroy(&oi->lock);
+	call_rcu(&(oi->vfs_inode->i_rcu), ovl_i_callback);
+	kfree(inode_pt);
+}
+
+static void gear_destroy() {
+	struct gear_ovl_entry_list *entry_pt = gear_ovl_entry_list;
+	struct gear_ovl_inode_list *inode_pt = gear_ovl_inode_list;
+
+	gear_destroy_entry(entry_pt);
+	gear_destroy_inode(inode_pt);
+}
+
 // gear: 添加对每个vfs中dentry的更新
-void gear_update(struct dentry *dentry) 
+static void gear_update(struct dentry *dentry) 
 {
 	struct ovl_entry *oe;
 	struct ovl_inode *oi;
 	struct inode *i;
 
-	i = d_inode(dentry);
+	if gear_ovl_entry_list == NULL {
+		gear_ovl_entry_list = (struct gear_ovl_entry_list *)malloc(struct gear_ovl_entry_list)
+		gear_ovl_entry_list->ovl_entry = NULL;
+		gear_ovl_entry_list->next = NULL;
+
+		gear_ovl_entry_current = gear_ovl_entry_list;
+	}
+
+	if gear_ovl_inode_list == NULL {
+		gear_ovl_inode_list = (struct gear_ovl_inode_list *)malloc(struct gear_ovl_inode_list)
+		gear_ovl_inode_list->ovl_entry = NULL;
+		gear_ovl_inode_list->next = NULL;
+
+		gear_ovl_inode_current = gear_ovl_inode_list;
+	}
 
 	if(dentry->d_parent->d_name.name[0] != '/') {
-		ovl_dentry_release(dentry);
-		ovl_destroy_inode(i);
+		// ovl_dentry_release(dentry);
+		// ovl_destroy_inode(i);
 		gear_update(dentry->d_parent);
 	}
-	// oe = dentry->d_fsdata;
-	// oi = OVL_I(dentry->d_inode);
-	// i = d_inode(dentry);
+	oe = dentry->d_fsdata;
+	oi = OVL_I(dentry->d_inode);
+
 	ovl_lookup(NULL, dentry, 0);
-	// if(oe != dentry->d_fsdata) {
-	// 	ovl_entry_stack_free(oe);
-	// 	kfree_rcu(oe, rcu);
-	// }
-	// if(i != d_inode(dentry) || oi != OVL_I(dentry->d_inode)) {
-	// 	dput(oi->__upperdentry);
-	// 	iput(oi->lower);
-	// 	kfree(oi->redirect);
-	// 	ovl_dir_cache_free(i);
-	// 	mutex_destroy(&oi->lock);
-	// 	call_rcu(&i->i_rcu, ovl_i_callback);
-	// }
+
+	if(oe != dentry->d_fsdata) {
+		gear_ovl_entry_current->next = (struct gear_ovl_entry_list *)malloc(struct gear_ovl_entry_list)
+		gear_ovl_entry_current->next->ovl_entry = oe;
+		gear_ovl_entry_current->next->next = NULL;
+		gear_ovl_entry_current = gear_ovl_entry_current->next;
+	}
+	if(i != d_inode(dentry) || oi != OVL_I(dentry->d_inode)) {
+		gear_ovl_inode_current->next = (struct gear_ovl_inode_list *)malloc(struct gear_ovl_inode_list)
+		gear_ovl_inode_current->next->ovl_inode = oi;
+		gear_ovl_inode_current->next->next = NULL;
+		gear_ovl_inode_current = gear_ovl_inode_current->next;
+	}
 }
 
 static struct dentry *gear_judge(struct dentry *dentry, 
