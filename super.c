@@ -107,6 +107,7 @@ static void gear_destroy_entry(struct gear_ovl_entry_list *entry_pt) {
 		ovl_entry_stack_free(oe);
 		kfree_rcu(oe, rcu);
 	}
+	dput(entry_pt->ovl_entry);
 	kfree(entry_pt);
 }
 
