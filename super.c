@@ -107,7 +107,7 @@ static void gear_destroy_entry(struct gear_ovl_entry_list *entry_pt) {
 		ovl_entry_stack_free(oe);
 		kfree_rcu(oe, rcu);
 	}
-	dput(entry_pt->ovl_entry);
+	// dput(entry_pt->ovl_entry);
 	kfree(entry_pt);
 }
 
@@ -1548,15 +1548,15 @@ static void __exit ovl_exit(void)
 {
 	unregister_filesystem(&ovl_fs_type);
 
+	// gear: 添加对失效的dentry和inode的释放
+	gear_destroy();
+
 	/*
 	 * Make sure all delayed rcu free inodes are flushed before we
 	 * destroy cache.
 	 */
 	rcu_barrier();
 	kmem_cache_destroy(ovl_inode_cachep);
-
-	// gear: 添加对失效的dentry和inode的释放
-	gear_destroy();
 }
 
 module_init(ovl_init);
