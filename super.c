@@ -65,7 +65,7 @@ static void ovl_entry_stack_free(struct ovl_entry *oe)
 {
 	unsigned int i;
 
-	for (i = 0; i < oe->numlower; i++)
+	for (i = 0; i < oe->numlower+1; i++)
 		dput(oe->lowerstack[i].dentry);
 }
 
@@ -95,88 +95,33 @@ static int ovl_check_append_only(struct inode *inode, int flag)
 	return 0;
 }
 
-static void gear_destroy_entry(struct gear_ovl_entry_list *entry_pt) {
-	struct ovl_entry *oe;
+static void gear_update(struct dentry *dentry) {
+	struct ovl_entry *oe = dentry->d_fsdata;
+	struct ovl_entry *poe = dentry->d_parent->d_fsdata;
+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+	int numgearworkdir = ofs->config.numgearworkdir;
+	struct ovl_path *gearworkpath = poe->lowerstack[numgearworkdir];
+	qstr name = dentry->d_name;
+	struct dentry *this;
+	struct dentry *real;
+	int i;
 
-	if(entry_pt->next != NULL) {
-		gear_destroy_entry(entry_pt->next);
-	}
-	oe = entry_pt->ovl_entry;
-
-	if(oe) {
-		ovl_entry_stack_free(oe);
-		kfree_rcu(oe, rcu);
-	}
-	// dput(entry_pt->ovl_entry);
-	kfree(entry_pt);
-}
-
-static void gear_destroy_inode(struct gear_ovl_inode_list *inode_pt) {
-	struct inode *i;
-
-	if(inode_pt->next != NULL) {
-		gear_destroy_inode(inode_pt->next);
-	}
-
-	i = &inode_pt->ovl_inode->vfs_inode;
-
-	ovl_destroy_inode(i);
-	kfree(inode_pt);
-}
-
-static void gear_destroy(void) {
-	struct gear_ovl_entry_list *entry_pt = gear_ovl_entry_list;
-	struct gear_ovl_inode_list *inode_pt = gear_ovl_inode_list;
-
-	gear_destroy_entry(entry_pt);
-	gear_destroy_inode(inode_pt);
-}
-
-// gear: 添加对每个vfs中dentry的更新
-static void gear_update(struct dentry *dentry) 
-{
-	struct ovl_entry *oe;
-	struct ovl_inode *oi;
-	struct inode *i;
-
-	if(gear_ovl_entry_list == NULL) {
-		gear_ovl_entry_list = (struct gear_ovl_entry_list *)kmalloc(sizeof(struct gear_ovl_entry_list), GFP_KERNEL);
-		gear_ovl_entry_list->ovl_entry = NULL;
-		gear_ovl_entry_list->next = NULL;
-
-		gear_ovl_entry_current = gear_ovl_entry_list;
-	}
-
-	if(gear_ovl_inode_list == NULL) {
-		gear_ovl_inode_list = (struct gear_ovl_inode_list *)kmalloc(sizeof(struct gear_ovl_inode_list), GFP_KERNEL);
-		gear_ovl_inode_list->ovl_inode = NULL;
-		gear_ovl_inode_list->next = NULL;
-
-		gear_ovl_inode_current = gear_ovl_inode_list;
-	}
-
-	if(dentry->d_parent->d_name.name[0] != '/') {
-		// ovl_dentry_release(dentry);
-		// ovl_destroy_inode(i);
+	if (dentry->d_parent.d_name.name[0] != '/') {
 		gear_update(dentry->d_parent);
 	}
-	oe = dentry->d_fsdata;
-	oi = OVL_I(dentry->d_inode);
-	i = &oi->vfs_inode;
 
-	ovl_lookup(NULL, dentry, 0);
-
-	if(oe != dentry->d_fsdata) {
-		gear_ovl_entry_current->next = (struct gear_ovl_entry_list *)kmalloc(sizeof(struct gear_ovl_entry_list), GFP_KERNEL);
-		gear_ovl_entry_current->next->ovl_entry = oe;
-		gear_ovl_entry_current->next->next = NULL;
-		gear_ovl_entry_current = gear_ovl_entry_current->next;
-	}
-	if(i != d_inode(dentry) || oi != OVL_I(dentry->d_inode)) {
-		gear_ovl_inode_current->next = (struct gear_ovl_inode_list *)kmalloc(sizeof(struct gear_ovl_inode_list), GFP_KERNEL);
-		gear_ovl_inode_current->next->ovl_inode = oi;
-		gear_ovl_inode_current->next->next = NULL;
-		gear_ovl_inode_current = gear_ovl_inode_current->next;
+	if (oe->gear_update != 1) {
+		this = lookup_one_len_unlocked(name.name, gearworkpath, name.len);
+		real = ovl_dentry_lower(dentry);
+		if (this != real) {
+			for (i = oe->numlower-1; i >= 0; i--) {
+				oe->lowerstack[i+1].dentry = oe->lowerstack[i].dentry;
+				oe->lowerstack[i+1].layer = oe->lowerstack[i].layer;
+			}
+			oe->lowerstack[0].dentry = this;
+			oe->lowerstack[0].layer = gearworkpath；
+		}
+		oe->gear_update = 1;
 	}
 }
 
@@ -200,14 +145,15 @@ static struct dentry *gear_judge(struct dentry *dentry,
 			else {
 				// 使用ovl_lookup更新当前dentry在底层的dentry
 				gear_update(dentry);
-				// printk("update!\n");
-				oe = dentry->d_fsdata;
-				oe->gear_update = 1;
 				real = ovl_dentry_lower(dentry);
 				return real;
 			}
 		}
 	}
+
+	err = ovl_create_real(dir, work,
+				      &(struct cattr){.mode = S_IFDIR | 0},
+				      NULL, true);
 
 	return real;
 }
@@ -620,7 +566,9 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
 				lower = strchr(lower, '\0') + 1;
 				if(strstr(lower, target)) {
 					printk("gear-work-dir: %s\n", lower);
+					printk("gear-work-dir-num: %d\n", numlower);
 					config->gearworkdir = lower;
+					config->numgearworkdir = numlower;
 					break;
 				}
 			}

@@ -78,7 +78,7 @@ struct dentry *ovl_indexdir(struct super_block *sb)
 
 struct ovl_entry *ovl_alloc_entry(unsigned int numlower)
 {
-	size_t size = offsetof(struct ovl_entry, lowerstack[numlower]);
+	size_t size = offsetof(struct ovl_entry, lowerstack[numlower+1]);
 	struct ovl_entry *oe = kzalloc(size, GFP_KERNEL);
 
 	if (oe) {
