@@ -100,17 +100,20 @@ static void gear_update(struct dentry *dentry) {
 	struct ovl_entry *poe = dentry->d_parent->d_fsdata;
 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
 	int numgearworkdir = ofs->config.numgearworkdir;
-	struct ovl_path *gearworkpath = poe->lowerstack[numgearworkdir];
-	qstr name = dentry->d_name;
+	struct ovl_path *gearworkpath; 
+	struct qstr name = dentry->d_name;
 	struct dentry *this;
 	struct dentry *real;
 	int i;
 
-	if (dentry->d_parent.d_name.name[0] != '/') {
+	if (dentry->d_parent->d_name.name[0] != '/') {
 		gear_update(dentry->d_parent);
 	}
 
 	if (oe->gear_update != 1) {
+		gearworkpath = (struct ovl_path *)kmalloc(sizeof(ovl_path), GFP_KERNEL);
+		memcpy(gearworkpath, &poe->lowerstack[numgearworkdir], sizeof(struct ovl_path));
+
 		this = lookup_one_len_unlocked(name.name, gearworkpath, name.len);
 		real = ovl_dentry_lower(dentry);
 		if (this != real) {
@@ -119,7 +122,7 @@ static void gear_update(struct dentry *dentry) {
 				oe->lowerstack[i+1].layer = oe->lowerstack[i].layer;
 			}
 			oe->lowerstack[0].dentry = this;
-			oe->lowerstack[0].layer = gearworkpath；
+			oe->lowerstack[0].layer = gearworkpath;
 		}
 		oe->gear_update = 1;
 	}
@@ -150,10 +153,6 @@ static struct dentry *gear_judge(struct dentry *dentry,
 			}
 		}
 	}
-
-	err = ovl_create_real(dir, work,
-				      &(struct cattr){.mode = S_IFDIR | 0},
-				      NULL, true);
 
 	return real;
 }
