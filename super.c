@@ -122,7 +122,7 @@ static void gear_update(struct dentry *dentry) {
 
 		this = lookup_one_len_unlocked(name.name, gearworkpath->dentry, name.len);
 		real = ovl_dentry_lower(dentry);
-		if (this != real) {
+		if (this != NULL && this != real) {
 			for (i = oe->numlower-1; i >= 0; i--) {
 				oe->lowerstack[i+1].dentry = oe->lowerstack[i].dentry;
 				oe->lowerstack[i+1].layer = oe->lowerstack[i].layer;
