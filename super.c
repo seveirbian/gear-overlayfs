@@ -100,7 +100,7 @@ static void gear_update(struct dentry *dentry) {
 	struct ovl_entry *poe = dentry->d_parent->d_fsdata;
 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
 	int numgearworkdir = ofs->config.numgearworkdir;
-	struct ovl_path *gearworkpath; 
+	struct ovl_path *gearworkpath = NULL; 
 	struct qstr name = dentry->d_name;
 	struct dentry *this;
 	struct dentry *real;
