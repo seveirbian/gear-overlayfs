@@ -127,13 +127,13 @@ static void gear_update(struct dentry *dentry) {
 		real = ovl_dentry_lower(dentry);
 		printk("this==NULL?: %s\n", this==NULL?"yes":"nop");
 		if (this != NULL && this != real) {
-			for (i = oe->numlower-1; i >= 0; i--) {
-				oe->lowerstack[i+1].dentry = oe->lowerstack[i].dentry;
-				oe->lowerstack[i+1].layer = oe->lowerstack[i].layer;
-			}
-			oe->lowerstack[0].dentry = this;
-			oe->lowerstack[0].layer = gearworkpath->layer;
-			oe->work_stack_num = 0;
+			// for (i = oe->numlower-1; i >= 0; i--) {
+			// 	oe->lowerstack[i+1].dentry = oe->lowerstack[i].dentry;
+			// 	oe->lowerstack[i+1].layer = oe->lowerstack[i].layer;
+			// }
+			oe->lowerstack[oe->numlower].dentry = this;
+			oe->lowerstack[oe->numlower].layer = gearworkpath->layer;
+			oe->work_stack_num = oe->numlower;
 		}
 		oe->gear_update = 1;
 		kfree(gearworkpath);
@@ -155,7 +155,7 @@ static struct dentry *gear_judge(struct dentry *dentry,
 			// 已经硬链接到上层
 			if(oe->gear_update) {
 				// printk("updated!\n");
-				return real;
+				return oe->lowerstack[oe->numlower].dentry;
 			}
 			else {
 				// 使用ovl_lookup更新当前dentry在底层的dentry
