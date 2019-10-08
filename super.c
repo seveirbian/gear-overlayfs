@@ -120,8 +120,12 @@ static void gear_update(struct dentry *dentry) {
 		gearworkpath = (struct ovl_path *)kmalloc(sizeof(struct ovl_path), GFP_KERNEL);
 		memcpy(gearworkpath, &poe->lowerstack[numgearworkdir], sizeof(struct ovl_path));
 
+		printk("parent dentry name: %s\n", gearworkpath->dentry->d_name.name);
+		printk("to be lookup name: %s\n", name.name);
+
 		this = lookup_one_len_unlocked(name.name, gearworkpath->dentry, name.len);
 		real = ovl_dentry_lower(dentry);
+		printk("this==NULL?: %s\n", this==NULL?"yes":"nop");
 		if (this != NULL && this != real) {
 			for (i = oe->numlower-1; i >= 0; i--) {
 				oe->lowerstack[i+1].dentry = oe->lowerstack[i].dentry;
