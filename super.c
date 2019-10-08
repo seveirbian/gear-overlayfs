@@ -126,7 +126,7 @@ static void gear_update(struct dentry *dentry) {
 		this = lookup_one_len_unlocked(name.name, gearworkpath->dentry, name.len);
 		real = ovl_dentry_lower(dentry);
 		printk("this==NULL?: %s\n", this==NULL?"yes":"nop");
-		if (this != NULL && this != real) {
+		if (this != NULL) {
 			// for (i = oe->numlower-1; i >= 0; i--) {
 			// 	oe->lowerstack[i+1].dentry = oe->lowerstack[i].dentry;
 			// 	oe->lowerstack[i+1].layer = oe->lowerstack[i].layer;
@@ -158,7 +158,7 @@ static struct dentry *gear_judge(struct dentry *dentry,
 				return oe->lowerstack[oe->numlower].dentry;
 			}
 			else {
-				// 使用ovl_lookup更新当前dentry在底层的dentry
+				// 更新当前dentry在底层的dentry
 				gear_update(dentry);
 				real = ovl_dentry_lower(dentry);
 				return real;
