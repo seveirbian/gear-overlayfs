@@ -140,6 +140,10 @@ static struct dentry *gear_judge(struct dentry *dentry,
 					const struct inode *inode, struct dentry *real, 
 					unsigned int open_flags) 
 {
+	struct ovl_entry *oe = dentry->d_fsdata;
+	// gear: 添加对gearworkdir的判断
+	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+
 	// char *gearrealfilename;
 	if(S_ISREG(dentry->d_inode->i_mode)) {
 		// 当前挂载的是gear镜像
