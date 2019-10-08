@@ -111,7 +111,7 @@ static void gear_update(struct dentry *dentry) {
 	}
 
 	if (oe->gear_update != 1) {
-		gearworkpath = (struct ovl_path *)kmalloc(sizeof(ovl_path), GFP_KERNEL);
+		gearworkpath = (struct ovl_path *)kmalloc(sizeof(struct ovl_path), GFP_KERNEL);
 		memcpy(gearworkpath, &poe->lowerstack[numgearworkdir], sizeof(struct ovl_path));
 
 		this = lookup_one_len_unlocked(name.name, gearworkpath, name.len);
