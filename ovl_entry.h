@@ -72,6 +72,7 @@ struct ovl_entry {
 
 	// gear: 添加是否已经更新为gear-work文件的dentry的标志
 	int gear_update;
+	int work_stack_num;
 
 	struct ovl_path lowerstack[];
 };

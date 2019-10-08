@@ -86,6 +86,7 @@ struct ovl_entry *ovl_alloc_entry(unsigned int numlower)
 		
 		// gear: 添加对gear_update的更新
 		oe->gear_update = 0;
+		work_stack_num = 0;
 	}
 
 	return oe;

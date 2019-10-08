@@ -99,7 +99,7 @@ static void gear_update(struct dentry *dentry) {
 	struct ovl_entry *oe = dentry->d_fsdata;
 	struct ovl_entry *poe = dentry->d_parent->d_fsdata;
 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-	int numgearworkdir = ofs->config.numgearworkdir;
+	int numgearworkdir;
 	struct ovl_path *gearworkpath = NULL; 
 	struct qstr name = dentry->d_name;
 	struct dentry *this;
@@ -108,6 +108,12 @@ static void gear_update(struct dentry *dentry) {
 
 	if (dentry->d_parent->d_name.name[0] != '/') {
 		gear_update(dentry->d_parent);
+	}
+
+	if (dentry->d_parent->d_name.name[0] == '/') {
+		numgearworkdir = ofs->config.numgearworkdir;
+	} else {
+		numgearworkdir = poe->work_stack_num;
 	}
 
 	if (oe->gear_update != 1) {
@@ -123,21 +129,17 @@ static void gear_update(struct dentry *dentry) {
 			}
 			oe->lowerstack[0].dentry = this;
 			oe->lowerstack[0].layer = gearworkpath->layer;
+			oe->work_stack_num = 0;
 		}
 		oe->gear_update = 1;
+		kfree(gearworkpath);
 	}
-
-	kfree(gearworkpath);
 }
 
 static struct dentry *gear_judge(struct dentry *dentry, 
 					const struct inode *inode, struct dentry *real, 
 					unsigned int open_flags) 
 {
-	struct ovl_entry *oe = dentry->d_fsdata;
-	// gear: 添加对gearworkdir的判断
-	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-
 	// char *gearrealfilename;
 	if(S_ISREG(dentry->d_inode->i_mode)) {
 		// 当前挂载的是gear镜像
