@@ -114,7 +114,7 @@ static void gear_update(struct dentry *dentry) {
 		gearworkpath = (struct ovl_path *)kmalloc(sizeof(struct ovl_path), GFP_KERNEL);
 		memcpy(gearworkpath, &poe->lowerstack[numgearworkdir], sizeof(struct ovl_path));
 
-		this = lookup_one_len_unlocked(name.name, gearworkpath, name.len);
+		this = lookup_one_len_unlocked(name.name, gearworkpath->dentry, name.len);
 		real = ovl_dentry_lower(dentry);
 		if (this != real) {
 			for (i = oe->numlower-1; i >= 0; i--) {
@@ -122,10 +122,12 @@ static void gear_update(struct dentry *dentry) {
 				oe->lowerstack[i+1].layer = oe->lowerstack[i].layer;
 			}
 			oe->lowerstack[0].dentry = this;
-			oe->lowerstack[0].layer = gearworkpath;
+			oe->lowerstack[0].layer = gearworkpath->layer;
 		}
 		oe->gear_update = 1;
 	}
+
+	kfree(gearworkpath);
 }
 
 static struct dentry *gear_judge(struct dentry *dentry, 
@@ -1494,9 +1496,6 @@ static int __init ovl_init(void)
 static void __exit ovl_exit(void)
 {
 	unregister_filesystem(&ovl_fs_type);
-
-	// gear: 添加对失效的dentry和inode的释放
-	gear_destroy();
 
 	/*
 	 * Make sure all delayed rcu free inodes are flushed before we
