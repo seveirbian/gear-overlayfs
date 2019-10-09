@@ -120,17 +120,13 @@ static void gear_update(struct dentry *dentry) {
 		gearworkpath = (struct ovl_path *)kmalloc(sizeof(struct ovl_path), GFP_KERNEL);
 		memcpy(gearworkpath, &poe->lowerstack[numgearworkdir], sizeof(struct ovl_path));
 
-		printk("parent dentry name: %s\n", gearworkpath->dentry->d_name.name);
-		printk("to be lookup name: %s\n", name.name);
+		// printk("parent dentry name: %s\n", gearworkpath->dentry->d_name.name);
+		// printk("to be lookup name: %s\n", name.name);
 
 		this = lookup_one_len_unlocked(name.name, gearworkpath->dentry, name.len);
 		real = ovl_dentry_lower(dentry);
-		printk("this==NULL?: %s\n", this==NULL?"yes":"nop");
+		// printk("this==NULL?: %s\n", this==NULL?"yes":"nop");
 		if (this != NULL) {
-			// for (i = oe->numlower-1; i >= 0; i--) {
-			// 	oe->lowerstack[i+1].dentry = oe->lowerstack[i].dentry;
-			// 	oe->lowerstack[i+1].layer = oe->lowerstack[i].layer;
-			// }
 			oe->lowerstack[oe->numlower].dentry = this;
 			oe->lowerstack[oe->numlower].layer = gearworkpath->layer;
 			oe->work_stack_num = oe->numlower;
@@ -155,7 +151,7 @@ static struct dentry *gear_judge(struct dentry *dentry,
 			// 已经硬链接到上层
 			if(oe->gear_update) {
 				// printk("updated!\n");
-				return oe->lowerstack[oe->numlower].dentry;
+				return oe->lowerstack[oe->work_stack_num].dentry;
 			}
 			else {
 				// 更新当前dentry在底层的dentry
