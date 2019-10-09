@@ -104,7 +104,6 @@ static void gear_update(struct dentry *dentry) {
 	struct qstr name = dentry->d_name;
 	struct dentry *this;
 	struct dentry *real;
-	int i;
 
 	if (dentry->d_parent->d_name.name[0] != '/') {
 		gear_update(dentry->d_parent);
